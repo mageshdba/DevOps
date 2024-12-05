@@ -1,0 +1,24 @@
+FROM summerwind/actions-runner:latest
+
+USER 0
+
+ARG TARGETPLATFORM
+
+RUN apt-get update && apt-get install -y git jq software-properties-common curl sudo wget libpq-dev apt-transport-https ca-certificates libssl-dev
+
+# Install python
+ENV PYTHONUNBUFFERED=1
+RUN apt-get update && apt-get install -y python3.9 python3-distutils python3-pip python3-apt
+RUN pip3 install --no-cache --upgrade pip setuptools black
+ENV PATH $PATH:/usr/local/bin/python3
+
+#Install Terraform
+RUN apt-get install unzip
+RUN platformVersion=$(echo $TARGETPLATFORM | sed 's/\//_/g') && wget https://releases.hashicorp.com/terraform/1.0.7/terraform_1.0.7_${platformVersion}.zip  \
+    && unzip terraform_1.0.7_${platformVersion}.zip
+RUN mv terraform /usr/local/bin/
+RUN terraform --version
+
+WORKDIR /apps
+
+COPY . /apps/
